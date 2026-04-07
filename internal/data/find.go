@@ -31,6 +31,9 @@ func FindUsedBlobs(ctx context.Context, repo restic.Loader, treeIDs restic.IDs, 
 			if item.Error != nil {
 				return item.Error
 			}
+			if item.Node == nil {
+				continue
+			}
 			lock.Lock()
 			switch item.Node.Type {
 			case NodeTypeFile:
