@@ -7,6 +7,7 @@ import (
 
 	"github.com/restic/restic/internal/bloblru"
 	"github.com/restic/restic/internal/data"
+	"github.com/restic/restic/internal/errors"
 	"github.com/restic/restic/internal/restic"
 	"github.com/restic/restic/internal/walker"
 	"golang.org/x/sync/errgroup"
@@ -124,7 +125,10 @@ func (d *Dumper) writeNode(ctx context.Context, w io.Writer, node *data.Node) er
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case blob := <-ch:
+			case blob, ok := <-ch:
+				if !ok {
+					return errors.New("blob loader failed")
+				}
 				if _, err := w.Write(blob); err != nil {
 					return err
 				}
@@ -141,6 +145,7 @@ loop:
 		ch := make(chan []byte, 1)
 
 		wg.Go(func() error {
+			defer close(ch)
 			blob, err := d.cache.GetOrCompute(id, func() ([]byte, error) {
 				return d.repo.LoadBlob(ctx, restic.DataBlob, id, nil)
 			})

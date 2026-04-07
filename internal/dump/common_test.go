@@ -3,7 +3,9 @@ package dump
 import (
 	"bytes"
 	"context"
+	"errors"
 	"testing"
+	"time"
 
 	"github.com/restic/restic/internal/archiver"
 	"github.com/restic/restic/internal/backend"
@@ -114,4 +116,71 @@ func WriteTest(t *testing.T, format string, cd CheckDump) {
 			rtest.Assert(t, err != nil, "expected error, got nil")
 		})
 	}
+}
+
+// TestWriteNodeBlobLoadError verifies that writeNode properly handles blob load errors
+// without deadlocking. This is a regression test for a bug where the writer goroutine
+// would block forever waiting for data from a blob loader that failed.
+func TestWriteNodeBlobLoadError(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create a mock repository that fails on LoadBlob
+	mockRepo := &mockBlobLoader{
+		loadBlobFunc: func(ctx context.Context, blobType restic.BlobType, id restic.ID, buf []byte) ([]byte, error) {
+			return nil, errors.New("simulated blob load failure")
+		},
+		connectionsFunc: func() uint {
+			return 2
+		},
+	}
+
+	// Create a node with content (blobs that will fail to load)
+	node := &data.Node{
+		Type:    data.NodeTypeFile,
+		Size:    100,
+		Content: []restic.ID{restic.NewRandomID(), restic.NewRandomID()},
+	}
+
+	dst := &bytes.Buffer{}
+	d := New("tar", mockRepo, dst)
+
+	// This should return an error, not deadlock
+	// Use a timeout to detect deadlocks
+	done := make(chan error, 1)
+	go func() {
+		done <- d.writeNode(ctx, dst, node)
+	}()
+
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("expected error from writeNode, got nil")
+		}
+		// Expected - we got an error instead of deadlocking
+	case <-time.After(5 * time.Second):
+		t.Fatal("writeNode appears to have deadlocked - no response after 5 seconds")
+	}
+}
+
+// mockBlobLoader is a mock implementation of restic.BlobLoader for testing
+type mockBlobLoader struct {
+	loadBlobFunc    func(ctx context.Context, blobType restic.BlobType, id restic.ID, buf []byte) ([]byte, error)
+	connectionsFunc func() uint
+}
+
+func (m *mockBlobLoader) LoadBlob(ctx context.Context, blobType restic.BlobType, id restic.ID, buf []byte) ([]byte, error) {
+	return m.loadBlobFunc(ctx, blobType, id, buf)
+}
+
+func (m *mockBlobLoader) Connections() uint {
+	if m.connectionsFunc != nil {
+		return m.connectionsFunc()
+	}
+	return 2
+}
+
+// Embed other required methods with stub implementations
+func (m *mockBlobLoader) LookupBlobSize(blobType restic.BlobType, id restic.ID) (size uint, exists bool) {
+	return 0, false
 }
