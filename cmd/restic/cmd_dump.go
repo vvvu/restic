@@ -106,13 +106,13 @@ func printFromTree(ctx context.Context, tree data.TreeNodeIterator, repo restic.
 			switch {
 			case l == 1 && node.Type == data.NodeTypeFile:
 				return d.WriteNode(ctx, node)
-			case l > 1 && node.Type == data.NodeTypeDir:
+			case l > 1 && node.Type == data.NodeTypeDir && node.Subtree != nil:
 				subtree, err := data.LoadTree(ctx, repo, *node.Subtree)
 				if err != nil {
 					return errors.Wrapf(err, "cannot load subtree for %q", item)
 				}
 				return printFromTree(ctx, subtree, repo, item, pathComponents[1:], d, canWriteArchiveFunc)
-			case node.Type == data.NodeTypeDir:
+			case node.Type == data.NodeTypeDir && node.Subtree != nil:
 				if err := canWriteArchiveFunc(); err != nil {
 					return err
 				}

@@ -408,7 +408,7 @@ func (f *Finder) findIDs(ctx context.Context, sn *data.Snapshot) error {
 			return nil
 		}
 
-		if node.Type == "dir" && f.treeIDs != nil {
+		if node.Type == "dir" && f.treeIDs != nil && node.Subtree != nil {
 			if err := f.findTree(*node.Subtree, nodepath); err != nil {
 				return err
 			}
