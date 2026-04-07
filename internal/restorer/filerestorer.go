@@ -284,8 +284,9 @@ func (r *fileRestorer) downloadPack(ctx context.Context, pack *packInfo) error {
 				}
 			})
 			if err != nil {
-				// restoreFiles should have caught this error before
-				panic(err)
+				// This should have been caught in restoreFiles, but handle it gracefully
+				// in case the repository index was corrupted between calls
+				return r.sanitizeError(file, err)
 			}
 		} else if packsMap, ok := file.blobs.(map[restic.ID][]fileBlobInfo); ok {
 			for _, blob := range packsMap[pack.id] {
