@@ -170,6 +170,9 @@ func runCopy(ctx context.Context, opts CopyOptions, gopts global.Options, args [
 
 func similarSnapshots(sna *data.Snapshot, snb *data.Snapshot) bool {
 	// everything except Parent and Original must match
+	if sna.Tree == nil || snb.Tree == nil {
+		return false
+	}
 	if !sna.Time.Equal(snb.Time) || !sna.Tree.Equal(*snb.Tree) || sna.Hostname != snb.Hostname ||
 		sna.Username != snb.Username || sna.UID != snb.UID || sna.GID != snb.GID ||
 		len(sna.Paths) != len(snb.Paths) || len(sna.Excludes) != len(snb.Excludes) ||
@@ -218,6 +221,10 @@ func copyTreeBatched(ctx context.Context, srcRepo restic.Repository, dstRepo res
 				batch = append(batch, sn)
 
 				printer.P("\n%v", sn)
+				if sn.Tree == nil {
+					printer.E("snapshot %v has nil tree, skipping", sn.ID().Str())
+					continue
+				}
 				printer.P("  copy started, this may take a while...")
 				sizeBlobs, err := copyTree(ctx, srcRepo, dstRepo, visitedTrees, *sn.Tree, printer, uploader)
 				if err != nil {

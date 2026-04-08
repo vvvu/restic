@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/restic/restic/internal/data"
+	"github.com/restic/restic/internal/debug"
 	"github.com/restic/restic/internal/errors"
 	"github.com/restic/restic/internal/global"
 	"github.com/restic/restic/internal/repository"
@@ -111,7 +112,11 @@ func runRecover(ctx context.Context, gopts global.Options, term ui.Terminal) err
 	bar.Done()
 
 	printer.P("load snapshots\n")
-	err = data.ForAllSnapshots(ctx, snapshotLister, repo, nil, func(_ restic.ID, sn *data.Snapshot, _ error) error {
+	err = data.ForAllSnapshots(ctx, snapshotLister, repo, nil, func(id restic.ID, sn *data.Snapshot, _ error) error {
+		if sn == nil || sn.Tree == nil {
+			debug.Log("snapshot %v has nil tree, skipping", id)
+			return nil
+		}
 		trees[*sn.Tree] = true
 		return nil
 	})

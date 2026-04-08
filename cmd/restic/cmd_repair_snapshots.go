@@ -147,6 +147,10 @@ func runRepairSnapshots(ctx context.Context, gopts global.Options, opts RepairOp
 	changedCount := 0
 	for sn := range FindFilteredSnapshots(ctx, snapshotLister, repo, &opts.SnapshotFilter, args, printer) {
 		printer.P("\n%v", sn)
+		if sn.Tree == nil {
+			printer.E("snapshot %v has nil tree, skipping", sn.ID().Str())
+			continue
+		}
 		changed, err := filterAndReplaceSnapshot(ctx, repo, sn,
 			func(ctx context.Context, sn *data.Snapshot, uploader restic.BlobSaver) (restic.ID, *data.SnapshotSummary, error) {
 				id, err := rewriter.RewriteTree(ctx, repo, uploader, "/", *sn.Tree)

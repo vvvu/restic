@@ -416,6 +416,10 @@ func runLs(ctx context.Context, opts LsOptions, gopts global.Options, args []str
 		return err
 	}
 
+	if sn.Tree == nil {
+		return errors.Fatalf("snapshot %v has nil tree after finding directory", sn.ID())
+	}
+
 	if err := printer.Snapshot(sn); err != nil {
 		return err
 	}
