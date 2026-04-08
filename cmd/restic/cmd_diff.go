@@ -138,6 +138,10 @@ func addBlobs(bs restic.AssociatedBlobSet, node *data.Node) {
 			bs.Insert(h)
 		}
 	case data.NodeTypeDir:
+		if node.Subtree == nil {
+			debug.Log("dir node %q has nil subtree, skipping", node.Name)
+			return
+		}
 		h := restic.BlobHandle{
 			ID:   *node.Subtree,
 			Type: restic.TreeBlob,
@@ -200,6 +204,10 @@ func (c *Comparer) printDir(ctx context.Context, mode string, stats *DiffStat, b
 		addBlobs(blobs, node)
 
 		if node.Type == data.NodeTypeDir {
+			if node.Subtree == nil {
+				c.printError("dir node %q has nil subtree, skipping", name)
+				continue
+			}
 			err := c.printDir(ctx, mode, stats, blobs, name, *node.Subtree)
 			if err != nil && err != context.Canceled {
 				c.printError("error: %v", err)
@@ -229,6 +237,10 @@ func (c *Comparer) collectDir(ctx context.Context, blobs restic.AssociatedBlobSe
 		addBlobs(blobs, node)
 
 		if node.Type == data.NodeTypeDir {
+			if node.Subtree == nil {
+				debug.Log("dir node %q has nil subtree, skipping", node.Name)
+				continue
+			}
 			err := c.collectDir(ctx, blobs, *node.Subtree)
 			if err != nil && err != context.Canceled {
 				c.printError("error: %v", err)
