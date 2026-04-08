@@ -174,9 +174,11 @@ func PrintSnapshots(stdout io.Writer, list data.Snapshots, reasons []data.KeepRe
 		if len(sn.Hostname) > maxHost {
 			maxHost = len(sn.Hostname)
 		}
-		for _, tag := range sn.Tags {
-			if len(tag) > maxTag {
-				maxTag = len(tag)
+		if sn.Tags != nil {
+			for _, tag := range sn.Tags {
+				if len(tag) > maxTag {
+					maxTag = len(tag)
+				}
 			}
 		}
 	}

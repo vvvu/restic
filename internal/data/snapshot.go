@@ -143,9 +143,11 @@ func (sn *Snapshot) fillUserInfo() error {
 func (sn *Snapshot) AddTags(addTags []string) (changed bool) {
 nextTag:
 	for _, add := range addTags {
-		for _, tag := range sn.Tags {
-			if tag == add {
-				continue nextTag
+		if sn.Tags != nil {
+			for _, tag := range sn.Tags {
+				if tag == add {
+					continue nextTag
+				}
 			}
 		}
 		sn.Tags = append(sn.Tags, add)
@@ -157,6 +159,9 @@ nextTag:
 // RemoveTags removes the given tags from the snapshots tags and
 // returns true if any changes were made.
 func (sn *Snapshot) RemoveTags(removeTags []string) (changed bool) {
+	if sn.Tags == nil {
+		return false
+	}
 	for _, remove := range removeTags {
 		for i, tag := range sn.Tags {
 			if tag == remove {
@@ -174,6 +179,9 @@ func (sn *Snapshot) RemoveTags(removeTags []string) (changed bool) {
 }
 
 func (sn *Snapshot) hasTag(tag string) bool {
+	if sn.Tags == nil {
+		return false
+	}
 	for _, snTag := range sn.Tags {
 		if tag == snTag {
 			return true
@@ -185,7 +193,7 @@ func (sn *Snapshot) hasTag(tag string) bool {
 // HasTags returns true if the snapshot has all the tags in l.
 func (sn *Snapshot) HasTags(l []string) bool {
 	for _, tag := range l {
-		if tag == "" && len(sn.Tags) == 0 {
+		if tag == "" && (sn.Tags == nil || len(sn.Tags) == 0) {
 			return true
 		}
 		if !sn.hasTag(tag) {
@@ -219,6 +227,9 @@ func (sn *Snapshot) HasTagList(l []TagList) bool {
 
 // HasPaths returns true if the snapshot has all of the paths.
 func (sn *Snapshot) HasPaths(paths []string) bool {
+	if sn.Paths == nil {
+		return false
+	}
 	m := make(map[string]struct{}, len(sn.Paths))
 	for _, snPath := range sn.Paths {
 		m[snPath] = struct{}{}

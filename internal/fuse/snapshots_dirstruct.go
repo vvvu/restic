@@ -90,7 +90,7 @@ func pathsFromSn(pathTemplate string, timeTemplate string, sn *data.Snapshot) (p
 			continue
 
 		case 't':
-			if len(sn.Tags) == 0 {
+			if sn.Tags == nil || len(sn.Tags) == 0 {
 				return nil, ""
 			}
 			if len(sn.Tags) != 1 {

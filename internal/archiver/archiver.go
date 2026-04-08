@@ -434,6 +434,9 @@ func (fn *futureNode) take(ctx context.Context) futureNodeResult {
 // present in the index.
 func (arch *Archiver) allBlobsPresent(previous *data.Node) bool {
 	// check if all blobs are contained in index
+	if previous.Content == nil {
+		return false
+	}
 	for _, id := range previous.Content {
 		if _, ok := arch.Repo.LookupBlobSize(restic.DataBlob, id); !ok {
 			return false
