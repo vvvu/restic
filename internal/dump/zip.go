@@ -20,6 +20,9 @@ func (d *Dumper) dumpZip(ctx context.Context, ch <-chan *data.Node) (err error) 
 	}()
 
 	for node := range ch {
+		if node == nil {
+			continue
+		}
 		if err := d.dumpNodeZip(ctx, node, w); err != nil {
 			return err
 		}

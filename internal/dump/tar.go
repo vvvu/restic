@@ -23,6 +23,9 @@ func (d *Dumper) dumpTar(ctx context.Context, ch <-chan *data.Node) (err error) 
 	}()
 
 	for node := range ch {
+		if node == nil {
+			continue
+		}
 		if err := d.dumpNodeTar(ctx, node, w); err != nil {
 			return err
 		}

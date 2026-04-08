@@ -107,12 +107,18 @@ func printFromTree(ctx context.Context, tree data.TreeNodeIterator, repo restic.
 			case l == 1 && node.Type == data.NodeTypeFile:
 				return d.WriteNode(ctx, node)
 			case l > 1 && node.Type == data.NodeTypeDir:
+				if node.Subtree == nil {
+					return errors.Errorf("directory %q has nil subtree", item)
+				}
 				subtree, err := data.LoadTree(ctx, repo, *node.Subtree)
 				if err != nil {
 					return errors.Wrapf(err, "cannot load subtree for %q", item)
 				}
 				return printFromTree(ctx, subtree, repo, item, pathComponents[1:], d, canWriteArchiveFunc)
 			case node.Type == data.NodeTypeDir:
+				if node.Subtree == nil {
+					return errors.Errorf("directory %q has nil subtree", item)
+				}
 				if err := canWriteArchiveFunc(); err != nil {
 					return err
 				}
