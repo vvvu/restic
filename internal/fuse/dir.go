@@ -84,6 +84,10 @@ func replaceSpecialNodes(ctx context.Context, repo restic.BlobLoader, node *data
 }
 
 func newDirFromSnapshot(root *Root, forget forgetFn, inode uint64, snapshot *data.Snapshot) (*dir, error) {
+	if snapshot.Tree == nil {
+		debug.Log("snapshot %v has nil tree", snapshot.ID())
+		return nil, errors.New("snapshot has nil tree")
+	}
 	debug.Log("new dir for snapshot %v (%v)", snapshot.ID(), snapshot.Tree)
 	return &dir{
 		root:   root,
