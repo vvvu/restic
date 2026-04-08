@@ -7,6 +7,7 @@ import (
 
 	"github.com/restic/restic/internal/bloblru"
 	"github.com/restic/restic/internal/data"
+	"github.com/restic/restic/internal/errors"
 	"github.com/restic/restic/internal/restic"
 	"github.com/restic/restic/internal/walker"
 	"golang.org/x/sync/errgroup"
@@ -78,6 +79,11 @@ func sendNodes(ctx context.Context, repo restic.BlobLoader, root *data.Node, ch 
 	// If this is no directory we are finished
 	if root.Type != data.NodeTypeDir {
 		return nil
+	}
+
+	// Handle corrupted directory nodes with nil subtree
+	if root.Subtree == nil {
+		return errors.New("directory node has nil subtree")
 	}
 
 	err := walker.Walk(ctx, repo, *root.Subtree, walker.WalkVisitor{ProcessNode: func(_ restic.ID, nodepath string, node *data.Node, err error) error {

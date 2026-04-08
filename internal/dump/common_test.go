@@ -14,6 +14,60 @@ import (
 	rtest "github.com/restic/restic/internal/test"
 )
 
+// TestSendNodesNilSubtree tests that sendNodes handles directory nodes with nil Subtree gracefully.
+// This is a regression test for a bug where sendNodes dereferenced node.Subtree without checking
+// if it was nil first, which could cause a panic on corrupted repository data.
+func TestSendNodesNilSubtree(t *testing.T) {
+	ctx := context.Background()
+
+	// Create a directory node with nil Subtree (simulating corrupted data)
+	dirNode := &data.Node{
+		Name:    "testdir",
+		Type:    data.NodeTypeDir,
+		Subtree: nil, // explicitly nil to test the fix
+	}
+
+	repo, _, _ := repository.TestRepositoryWithVersion(t, 0)
+	ch := make(chan *data.Node, 10)
+
+	// This should return an error, not panic
+	err := sendNodes(ctx, repo, dirNode, ch)
+	if err == nil {
+		t.Errorf("sendNodes should return error for nil subtree, got nil")
+	}
+
+	close(ch)
+}
+
+// TestSendNodesFileNode tests that sendNodes correctly handles file nodes.
+func TestSendNodesFileNode(t *testing.T) {
+	ctx := context.Background()
+
+	fileNode := &data.Node{
+		Name:    "testfile",
+		Type:    data.NodeTypeFile,
+		Mode:    0644,
+		Content: restic.IDs{},
+	}
+
+	repo, _, _ := repository.TestRepositoryWithVersion(t, 0)
+	ch := make(chan *data.Node, 10)
+
+	// This should not error for file nodes
+	err := sendNodes(ctx, repo, fileNode, ch)
+	if err != nil {
+		t.Errorf("sendNodes returned error for file node: %v", err)
+	}
+
+	// Verify the node was sent
+	node := <-ch
+	if node != fileNode {
+		t.Errorf("sendNodes should send the file node")
+	}
+
+	close(ch)
+}
+
 func prepareTempdirRepoSrc(t testing.TB, src archiver.TestDir) (string, restic.Repository, backend.Backend) {
 	tempdir := rtest.TempDir(t)
 	repo, _, be := repository.TestRepositoryWithVersion(t, 0)

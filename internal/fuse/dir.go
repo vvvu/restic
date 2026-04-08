@@ -110,6 +110,11 @@ func (d *dir) open(ctx context.Context) error {
 
 	debug.Log("open dir %v (%v)", d.node.Name, d.node.Subtree)
 
+	if d.node.Subtree == nil {
+		debug.Log("  directory %q has nil subtree", d.node.Name)
+		return errors.New("directory has nil subtree")
+	}
+
 	tree, err := data.LoadTree(ctx, d.root.repo, *d.node.Subtree)
 	if err != nil {
 		debug.Log("  error loading tree %v: %v", d.node.Subtree, err)
