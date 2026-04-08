@@ -714,6 +714,9 @@ func (s *fileState) HasMatchingBlob(i int) bool {
 // Reusing buffers prevents the verifier goroutines allocating all of RAM and
 // flushing the filesystem cache (at least on Linux).
 func (res *Restorer) verifyFile(ctx context.Context, target string, node *data.Node, failFast bool, trustMtime bool, buf []byte) (*fileState, []byte, error) {
+	if node.Content == nil {
+		return nil, buf, errors.Errorf("file %q has nil Content", node.Name)
+	}
 	f, err := fs.OpenFile(target, fs.O_RDONLY|fs.O_NOFOLLOW, 0)
 	if err != nil {
 		return nil, buf, err
