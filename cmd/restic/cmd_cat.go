@@ -197,6 +197,10 @@ func runCat(ctx context.Context, gopts global.Options, args []string, term ui.Te
 			return errors.Fatalf("could not find snapshot: %v", err)
 		}
 
+		if sn.Tree == nil {
+			return errors.Fatalf("snapshot %v has nil tree", sn.ID())
+		}
+
 		err = repo.LoadIndex(ctx, printer)
 		if err != nil {
 			return err
@@ -205,6 +209,10 @@ func runCat(ctx context.Context, gopts global.Options, args []string, term ui.Te
 		sn.Tree, err = data.FindTreeDirectory(ctx, repo, sn.Tree, subfolder)
 		if err != nil {
 			return err
+		}
+
+		if sn.Tree == nil {
+			return errors.Fatalf("snapshot %v has nil tree after finding directory", sn.ID())
 		}
 
 		buf, err := repo.LoadBlob(ctx, restic.TreeBlob, *sn.Tree, nil)

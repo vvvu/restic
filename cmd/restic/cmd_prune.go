@@ -286,6 +286,10 @@ func getUsedBlobs(ctx context.Context, repo restic.Repository, usedBlobs restic.
 				debug.Log("failed to load snapshot %v (error %v)", id, err)
 				return err
 			}
+			if sn == nil || sn.Tree == nil {
+				debug.Log("snapshot %v has nil tree, skipping", id)
+				return nil
+			}
 			debug.Log("add snapshot %v (tree %v)", id, *sn.Tree)
 			snapshotTrees = append(snapshotTrees, *sn.Tree)
 			return nil
