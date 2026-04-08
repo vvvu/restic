@@ -146,6 +146,9 @@ func (node Node) String() string {
 
 // GetExtendedAttribute gets the extended attribute.
 func (node Node) GetExtendedAttribute(a string) []byte {
+	if node.ExtendedAttributes == nil {
+		return nil
+	}
 	for _, attr := range node.ExtendedAttributes {
 		if attr.Name == a {
 			return attr.Value

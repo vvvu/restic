@@ -10,8 +10,10 @@ import (
 
 func nodeToXattrList(node *data.Node, req *fuse.ListxattrRequest, resp *fuse.ListxattrResponse) {
 	debug.Log("Listxattr(%v, %v)", node.Name, req.Size)
-	for _, attr := range node.ExtendedAttributes {
-		resp.Append(attr.Name)
+	if node.ExtendedAttributes != nil {
+		for _, attr := range node.ExtendedAttributes {
+			resp.Append(attr.Name)
+		}
 	}
 }
 

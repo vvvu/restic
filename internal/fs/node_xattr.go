@@ -64,14 +64,16 @@ func handleXattrErr(err error) error {
 
 func nodeRestoreExtendedAttributes(node *data.Node, path string, xattrSelectFilter func(xattrName string) bool) error {
 	expectedAttrs := map[string]struct{}{}
-	for _, attr := range node.ExtendedAttributes {
-		// Only restore xattrs that match the filter
-		if xattrSelectFilter(attr.Name) {
-			err := setxattr(path, attr.Name, attr.Value)
-			if err != nil {
-				return err
+	if node.ExtendedAttributes != nil {
+		for _, attr := range node.ExtendedAttributes {
+			// Only restore xattrs that match the filter
+			if xattrSelectFilter(attr.Name) {
+				err := setxattr(path, attr.Name, attr.Value)
+				if err != nil {
+					return err
+				}
+				expectedAttrs[attr.Name] = struct{}{}
 			}
-			expectedAttrs[attr.Name] = struct{}{}
 		}
 	}
 
