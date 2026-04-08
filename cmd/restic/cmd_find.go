@@ -409,28 +409,32 @@ func (f *Finder) findIDs(ctx context.Context, sn *data.Snapshot) error {
 		}
 
 		if node.Type == "dir" && f.treeIDs != nil {
-			if err := f.findTree(*node.Subtree, nodepath); err != nil {
-				return err
+			if node.Subtree != nil {
+				if err := f.findTree(*node.Subtree, nodepath); err != nil {
+					return err
+				}
 			}
 		}
 
 		if node.Type == data.NodeTypeFile && f.blobIDs != nil {
-			for _, id := range node.Content {
-				if ctx.Err() != nil {
-					return ctx.Err()
-				}
-
-				idStr := id.String()
-				if _, ok := f.blobIDs[idStr]; !ok {
-					// Look for short ID form
-					if _, ok := f.blobIDs[id.Str()]; !ok {
-						continue
+			if node.Content != nil {
+				for _, id := range node.Content {
+					if ctx.Err() != nil {
+						return ctx.Err()
 					}
-					// Replace the short ID with the long one
-					f.blobIDs[idStr] = struct{}{}
-					delete(f.blobIDs, id.Str())
+
+					idStr := id.String()
+					if _, ok := f.blobIDs[idStr]; !ok {
+						// Look for short ID form
+						if _, ok := f.blobIDs[id.Str()]; !ok {
+							continue
+						}
+						// Replace the short ID with the long one
+						f.blobIDs[idStr] = struct{}{}
+						delete(f.blobIDs, id.Str())
+					}
+					f.out.PrintObject("blob", idStr, nodepath, parentTreeID.String(), sn)
 				}
-				f.out.PrintObject("blob", idStr, nodepath, parentTreeID.String(), sn)
 			}
 		}
 

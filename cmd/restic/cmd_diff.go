@@ -130,19 +130,23 @@ func addBlobs(bs restic.AssociatedBlobSet, node *data.Node) {
 
 	switch node.Type {
 	case data.NodeTypeFile:
-		for _, blob := range node.Content {
+		if node.Content != nil {
+			for _, blob := range node.Content {
+				h := restic.BlobHandle{
+					ID:   blob,
+					Type: restic.DataBlob,
+				}
+				bs.Insert(h)
+			}
+		}
+	case data.NodeTypeDir:
+		if node.Subtree != nil {
 			h := restic.BlobHandle{
-				ID:   blob,
-				Type: restic.DataBlob,
+				ID:   *node.Subtree,
+				Type: restic.TreeBlob,
 			}
 			bs.Insert(h)
 		}
-	case data.NodeTypeDir:
-		h := restic.BlobHandle{
-			ID:   *node.Subtree,
-			Type: restic.TreeBlob,
-		}
-		bs.Insert(h)
 	}
 }
 
@@ -200,9 +204,11 @@ func (c *Comparer) printDir(ctx context.Context, mode string, stats *DiffStat, b
 		addBlobs(blobs, node)
 
 		if node.Type == data.NodeTypeDir {
-			err := c.printDir(ctx, mode, stats, blobs, name, *node.Subtree)
-			if err != nil && err != context.Canceled {
-				c.printError("error: %v", err)
+			if node.Subtree != nil {
+				err := c.printDir(ctx, mode, stats, blobs, name, *node.Subtree)
+				if err != nil && err != context.Canceled {
+					c.printError("error: %v", err)
+				}
 			}
 		}
 	}
@@ -229,9 +235,11 @@ func (c *Comparer) collectDir(ctx context.Context, blobs restic.AssociatedBlobSe
 		addBlobs(blobs, node)
 
 		if node.Type == data.NodeTypeDir {
-			err := c.collectDir(ctx, blobs, *node.Subtree)
-			if err != nil && err != context.Canceled {
-				c.printError("error: %v", err)
+			if node.Subtree != nil {
+				err := c.collectDir(ctx, blobs, *node.Subtree)
+				if err != nil && err != context.Canceled {
+					c.printError("error: %v", err)
+				}
 			}
 		}
 	}
