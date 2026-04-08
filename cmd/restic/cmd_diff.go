@@ -138,11 +138,13 @@ func addBlobs(bs restic.AssociatedBlobSet, node *data.Node) {
 			bs.Insert(h)
 		}
 	case data.NodeTypeDir:
-		h := restic.BlobHandle{
-			ID:   *node.Subtree,
-			Type: restic.TreeBlob,
+		if node.Subtree != nil {
+			h := restic.BlobHandle{
+				ID:   *node.Subtree,
+				Type: restic.TreeBlob,
+			}
+			bs.Insert(h)
 		}
-		bs.Insert(h)
 	}
 }
 
@@ -199,7 +201,7 @@ func (c *Comparer) printDir(ctx context.Context, mode string, stats *DiffStat, b
 		stats.Add(node)
 		addBlobs(blobs, node)
 
-		if node.Type == data.NodeTypeDir {
+		if node.Type == data.NodeTypeDir && node.Subtree != nil {
 			err := c.printDir(ctx, mode, stats, blobs, name, *node.Subtree)
 			if err != nil && err != context.Canceled {
 				c.printError("error: %v", err)
@@ -228,7 +230,7 @@ func (c *Comparer) collectDir(ctx context.Context, blobs restic.AssociatedBlobSe
 		node := item.Node
 		addBlobs(blobs, node)
 
-		if node.Type == data.NodeTypeDir {
+		if node.Type == data.NodeTypeDir && node.Subtree != nil {
 			err := c.collectDir(ctx, blobs, *node.Subtree)
 			if err != nil && err != context.Canceled {
 				c.printError("error: %v", err)
@@ -308,7 +310,8 @@ func (c *Comparer) diffTree(ctx context.Context, stats *DiffStatsContainer, pref
 				c.printChange(NewChange(name, mod))
 			}
 
-			if node1.Type == data.NodeTypeDir && node2.Type == data.NodeTypeDir {
+			if node1.Type == data.NodeTypeDir && node2.Type == data.NodeTypeDir &&
+				node1.Subtree != nil && node2.Subtree != nil {
 				var err error
 				if (*node1.Subtree).Equal(*node2.Subtree) {
 					err = c.collectDir(ctx, stats.BlobsCommon, *node1.Subtree)
@@ -327,7 +330,7 @@ func (c *Comparer) diffTree(ctx context.Context, stats *DiffStatsContainer, pref
 			c.printChange(NewChange(prefix, "-"))
 			stats.Removed.Add(node1)
 
-			if node1.Type == data.NodeTypeDir {
+			if node1.Type == data.NodeTypeDir && node1.Subtree != nil {
 				err := c.printDir(ctx, "-", &stats.Removed, stats.BlobsBefore, prefix, *node1.Subtree)
 				if err != nil && err != context.Canceled {
 					c.printError("error: %v", err)
@@ -341,7 +344,7 @@ func (c *Comparer) diffTree(ctx context.Context, stats *DiffStatsContainer, pref
 			c.printChange(NewChange(prefix, "+"))
 			stats.Added.Add(node2)
 
-			if node2.Type == data.NodeTypeDir {
+			if node2.Type == data.NodeTypeDir && node2.Subtree != nil {
 				err := c.printDir(ctx, "+", &stats.Added, stats.BlobsAfter, prefix, *node2.Subtree)
 				if err != nil && err != context.Canceled {
 					c.printError("error: %v", err)
