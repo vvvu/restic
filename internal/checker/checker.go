@@ -206,37 +206,37 @@ func (c *Checker) checkTree(id restic.ID, tree data.TreeNodeIterator) (errs []er
 		case data.NodeTypeFile:
 			if node.Content == nil {
 				errs = append(errs, &Error{TreeID: id, Err: errors.Errorf("file %q has nil blob list", node.Name)})
-			}
-
-			for b, blobID := range node.Content {
-				if blobID.IsNull() {
-					errs = append(errs, &Error{TreeID: id, Err: errors.Errorf("file %q blob %d has null ID", node.Name, b)})
-					continue
-				}
-				// Note that we do not use the blob size. The "obvious" check
-				// whether the sum of the blob sizes matches the file size
-				// unfortunately fails in some cases that are not resolvable
-				// by users, so we omit this check, see #1887
-
-				_, found := c.repo.LookupBlobSize(restic.DataBlob, blobID)
-				if !found {
-					debug.Log("tree %v references blob %v which isn't contained in index", id, blobID)
-					errs = append(errs, &Error{TreeID: id, Err: errors.Errorf("file %q blob %v not found in index", node.Name, blobID)})
-				}
-			}
-
-			if c.trackUnused {
-				// loop a second time to keep the locked section as short as possible
-				c.blobRefs.Lock()
-				for _, blobID := range node.Content {
+			} else {
+				for b, blobID := range node.Content {
 					if blobID.IsNull() {
+						errs = append(errs, &Error{TreeID: id, Err: errors.Errorf("file %q blob %d has null ID", node.Name, b)})
 						continue
 					}
-					h := restic.BlobHandle{ID: blobID, Type: restic.DataBlob}
-					c.blobRefs.M.Insert(h)
-					debug.Log("blob %v is referenced", blobID)
+					// Note that we do not use the blob size. The "obvious" check
+					// whether the sum of the blob sizes matches the file size
+					// unfortunately fails in some cases that are not resolvable
+					// by users, so we omit this check, see #1887
+
+					_, found := c.repo.LookupBlobSize(restic.DataBlob, blobID)
+					if !found {
+						debug.Log("tree %v references blob %v which isn't contained in index", id, blobID)
+						errs = append(errs, &Error{TreeID: id, Err: errors.Errorf("file %q blob %v not found in index", node.Name, blobID)})
+					}
 				}
-				c.blobRefs.Unlock()
+
+				if c.trackUnused {
+					// loop a second time to keep the locked section as short as possible
+					c.blobRefs.Lock()
+					for _, blobID := range node.Content {
+						if blobID.IsNull() {
+							continue
+						}
+						h := restic.BlobHandle{ID: blobID, Type: restic.DataBlob}
+						c.blobRefs.M.Insert(h)
+						debug.Log("blob %v is referenced", blobID)
+					}
+					c.blobRefs.Unlock()
+				}
 			}
 
 		case data.NodeTypeDir:

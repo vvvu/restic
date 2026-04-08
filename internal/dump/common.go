@@ -134,27 +134,29 @@ func (d *Dumper) writeNode(ctx context.Context, w io.Writer, node *data.Node) er
 	})
 
 	// Start short-lived goroutines to load blobs.
-loop:
-	for _, id := range node.Content {
-		// This needs to be buffered, so that loaders can quit
-		// without waiting for the writer.
-		ch := make(chan []byte, 1)
+	if node.Content != nil {
+	loop:
+		for _, id := range node.Content {
+			// This needs to be buffered, so that loaders can quit
+			// without waiting for the writer.
+			ch := make(chan []byte, 1)
 
-		wg.Go(func() error {
-			blob, err := d.cache.GetOrCompute(id, func() ([]byte, error) {
-				return d.repo.LoadBlob(ctx, restic.DataBlob, id, nil)
+			wg.Go(func() error {
+				blob, err := d.cache.GetOrCompute(id, func() ([]byte, error) {
+					return d.repo.LoadBlob(ctx, restic.DataBlob, id, nil)
+				})
+
+				if err == nil {
+					ch <- blob
+				}
+				return err
 			})
 
-			if err == nil {
-				ch <- blob
+			select {
+			case blobs <- ch:
+			case <-ctx.Done():
+				break loop
 			}
-			return err
-		})
-
-		select {
-		case blobs <- ch:
-		case <-ctx.Done():
-			break loop
 		}
 	}
 
