@@ -39,6 +39,10 @@ type openFile struct {
 }
 
 func newFile(root *Root, forget forgetFn, inode uint64, node *data.Node) (fusefile *file, err error) {
+	if node.Content == nil {
+		debug.Log("file node %q has nil Content", node.Name)
+		return nil, errors.New("file node has nil Content")
+	}
 	debug.Log("create new file for %v with %d blobs", node.Name, len(node.Content))
 	return &file{
 		inode:  inode,
@@ -70,6 +74,10 @@ func (f *file) Attr(_ context.Context, a *fuse.Attr) error {
 }
 
 func (f *file) Open(ctx context.Context, _ *fuse.OpenRequest, _ *fuse.OpenResponse) (fs.Handle, error) {
+	if f.node.Content == nil {
+		debug.Log("file %q has nil Content", f.node.Name)
+		return nil, errors.New("file has nil Content")
+	}
 	debug.Log("open file %v with %d blobs", f.node.Name, len(f.node.Content))
 
 	var bytes uint64
