@@ -409,12 +409,20 @@ func (f *Finder) findIDs(ctx context.Context, sn *data.Snapshot) error {
 		}
 
 		if node.Type == "dir" && f.treeIDs != nil {
+			if node.Subtree == nil {
+				debug.Log("dir node %q has nil subtree", nodepath)
+				return nil
+			}
 			if err := f.findTree(*node.Subtree, nodepath); err != nil {
 				return err
 			}
 		}
 
 		if node.Type == data.NodeTypeFile && f.blobIDs != nil {
+			if node.Content == nil {
+				debug.Log("file node %q has nil Content", nodepath)
+				return nil
+			}
 			for _, id := range node.Content {
 				if ctx.Err() != nil {
 					return ctx.Err()

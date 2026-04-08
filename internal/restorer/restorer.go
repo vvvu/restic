@@ -741,6 +741,10 @@ func (res *Restorer) verifyFile(ctx context.Context, target string, node *data.N
 		return &fileState{nil, sizeMatches}, buf, nil
 	}
 
+	if node.Content == nil {
+		return nil, buf, errors.Errorf("file node has nil Content")
+	}
+
 	matches := make([]bool, len(node.Content))
 	var offset int64
 	for i, blobID := range node.Content {

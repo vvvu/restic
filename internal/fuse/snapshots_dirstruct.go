@@ -308,7 +308,12 @@ func (d *SnapshotsDirStructure) updateSnapshots(ctx context.Context) error {
 	sort.Slice(snapshots, func(i, j int) bool {
 		si, sj := snapshots[i], snapshots[j]
 		if si.Time.Equal(sj.Time) {
-			return bytes.Compare(si.ID()[:], sj.ID()[:]) < 0
+			siID, sjID := si.ID(), sj.ID()
+			if siID == nil || sjID == nil {
+				// Handle snapshots with nil IDs - sort them by time only
+				return false
+			}
+			return bytes.Compare(siID[:], sjID[:]) < 0
 		}
 		return si.Time.Before(sj.Time)
 	})
@@ -316,7 +321,12 @@ func (d *SnapshotsDirStructure) updateSnapshots(ctx context.Context) error {
 	// We update the snapshots when the hash of their id's changes.
 	h := sha256.New()
 	for _, sn := range snapshots {
-		h.Write(sn.ID()[:])
+		id := sn.ID()
+		if id == nil {
+			debug.Log("snapshot has nil ID, skipping")
+			continue
+		}
+		h.Write(id[:])
 	}
 	var hash [sha256.Size]byte
 	h.Sum(hash[:0])

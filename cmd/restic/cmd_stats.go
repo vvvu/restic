@@ -11,6 +11,7 @@ import (
 	"github.com/restic/chunker"
 	"github.com/restic/restic/internal/crypto"
 	"github.com/restic/restic/internal/data"
+	"github.com/restic/restic/internal/debug"
 	"github.com/restic/restic/internal/global"
 	"github.com/restic/restic/internal/repository"
 	"github.com/restic/restic/internal/restic"
@@ -251,6 +252,10 @@ func statsWalkTree(repo restic.Loader, opts StatsOptions, stats *statsContainer,
 				if opts.countMode == countModeBlobsPerFile {
 					// count the size of each unique blob reference, which is
 					// by unique file (unique by contents and file path)
+					if node.Content == nil {
+						debug.Log("file node %q has nil Content", node.Name)
+						return nil
+					}
 					for _, blobID := range node.Content {
 						// ensure we have this file (by path) in our map; in this
 						// mode, a file is unique by both contents and path
@@ -302,6 +307,10 @@ func statsWalkTree(repo restic.Loader, opts StatsOptions, stats *statsContainer,
 // makeFileIDByContents returns a hash of the blob IDs of the
 // node's Content in sequence.
 func makeFileIDByContents(node *data.Node) fileID {
+	if node.Content == nil {
+		// Return a hash of empty content for files with no Content
+		return sha256.Sum256(nil)
+	}
 	var bb []byte
 	for _, c := range node.Content {
 		bb = append(bb, c[:]...)
