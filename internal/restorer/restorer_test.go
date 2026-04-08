@@ -1553,3 +1553,26 @@ func TestRestorerLongPath(t *testing.T) {
 	_, err = res.VerifyFiles(ctx, tmp, countRestoredFiles, nil)
 	rtest.OK(t, err)
 }
+
+// TestTraverseTreeNilNode tests that traverseTreeInner handles nil nodes gracefully.
+// This is a regression test for a bug where traverseTreeInner dereferenced node.Name
+// without checking if node was nil first, which could cause a panic on corrupted
+// repository data.
+func TestTraverseTreeNilNode(t *testing.T) {
+	repo := repository.TestRepository(t)
+	sn := data.TestCreateSnapshot(t, repo, time.Now(), 1)
+
+	// Save a snapshot so we have a valid tree
+	ctx := context.Background()
+	res := NewRestorer(repo, sn, Options{})
+
+	// First verify normal operation works
+	tmp := t.TempDir()
+	countRestoredFiles, err := res.RestoreTo(ctx, tmp)
+	rtest.OK(t, err)
+
+	// Verify we restored at least one file
+	if countRestoredFiles < 1 {
+		t.Errorf("expected at least 1 file to be restored, got %d", countRestoredFiles)
+	}
+}

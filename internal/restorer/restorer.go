@@ -171,6 +171,10 @@ func (res *Restorer) traverseTreeInner(ctx context.Context, target, location str
 			return nil, hasRestored, res.sanitizeError(location, item.Error)
 		}
 		node := item.Node
+		if node == nil {
+			debug.Log("tree %v contains nil node, skipping", treeID)
+			continue
+		}
 		if ctx.Err() != nil {
 			return nil, hasRestored, ctx.Err()
 		}
