@@ -211,7 +211,11 @@ func runForget(ctx context.Context, opts ForgetOptions, pruneOptions PruneOption
 	if len(args) > 0 {
 		// When explicit snapshots args are given, remove them immediately.
 		for _, sn := range snapshots {
-			removeSnIDs.Insert(*sn.ID())
+			if sn.ID() != nil {
+				removeSnIDs.Insert(*sn.ID())
+			} else {
+				printer.E("ignoring snapshot with nil ID")
+			}
 		}
 	} else {
 		snapshotGroups, _, err := data.GroupSnapshots(snapshots, opts.GroupBy)
@@ -298,7 +302,11 @@ func runForget(ctx context.Context, opts ForgetOptions, pruneOptions PruneOption
 			jsonGroups = append(jsonGroups, &fg)
 
 			for _, sn := range remove {
-				removeSnIDs.Insert(*sn.ID())
+				if sn.ID() != nil {
+					removeSnIDs.Insert(*sn.ID())
+				} else {
+					printer.E("ignoring snapshot with nil ID")
+				}
 			}
 		}
 	}
