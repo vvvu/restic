@@ -11,6 +11,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/restic/restic/internal/debug"
 	"github.com/restic/restic/internal/errors"
 	"github.com/restic/restic/internal/restic"
 )
@@ -233,6 +234,10 @@ func SaveTree(ctx context.Context, saver restic.BlobSaver, nodes TreeNodeIterato
 	for item := range nodes {
 		if item.Error != nil {
 			return restic.ID{}, item.Error
+		}
+		if item.Node == nil {
+			debug.Log("skipping nil node in SaveTree")
+			continue
 		}
 		err := treeWriter.AddNode(item.Node)
 		if err != nil {
