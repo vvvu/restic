@@ -49,6 +49,9 @@ func tarIdentifier(id uint32) int {
 }
 
 func (d *Dumper) dumpNodeTar(ctx context.Context, node *data.Node, w *tar.Writer) error {
+	if node == nil {
+		return errors.New("node is nil")
+	}
 	relPath, err := filepath.Rel("/", node.Path)
 	if err != nil {
 		return err

@@ -28,6 +28,9 @@ func (d *Dumper) dumpZip(ctx context.Context, ch <-chan *data.Node) (err error) 
 }
 
 func (d *Dumper) dumpNodeZip(ctx context.Context, node *data.Node, zw *zip.Writer) error {
+	if node == nil {
+		return errors.New("node is nil")
+	}
 	relPath, err := filepath.Rel("/", node.Path)
 	if err != nil {
 		return err
