@@ -309,6 +309,10 @@ func (c *Comparer) diffTree(ctx context.Context, stats *DiffStatsContainer, pref
 			}
 
 			if node1.Type == data.NodeTypeDir && node2.Type == data.NodeTypeDir {
+				if node1.Subtree == nil || node2.Subtree == nil {
+					debug.Log("dir node has nil subtree: node1.Subtree=%v, node2.Subtree=%v", node1.Subtree, node2.Subtree)
+					continue
+				}
 				var err error
 				if (*node1.Subtree).Equal(*node2.Subtree) {
 					err = c.collectDir(ctx, stats.BlobsCommon, *node1.Subtree)
@@ -328,6 +332,10 @@ func (c *Comparer) diffTree(ctx context.Context, stats *DiffStatsContainer, pref
 			stats.Removed.Add(node1)
 
 			if node1.Type == data.NodeTypeDir {
+				if node1.Subtree == nil {
+					debug.Log("dir node has nil subtree: %s", prefix)
+					continue
+				}
 				err := c.printDir(ctx, "-", &stats.Removed, stats.BlobsBefore, prefix, *node1.Subtree)
 				if err != nil && err != context.Canceled {
 					c.printError("error: %v", err)
@@ -342,6 +350,10 @@ func (c *Comparer) diffTree(ctx context.Context, stats *DiffStatsContainer, pref
 			stats.Added.Add(node2)
 
 			if node2.Type == data.NodeTypeDir {
+				if node2.Subtree == nil {
+					debug.Log("dir node has nil subtree: %s", prefix)
+					continue
+				}
 				err := c.printDir(ctx, "+", &stats.Added, stats.BlobsAfter, prefix, *node2.Subtree)
 				if err != nil && err != context.Canceled {
 					c.printError("error: %v", err)
