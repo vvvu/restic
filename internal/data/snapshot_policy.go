@@ -254,7 +254,11 @@ func ApplyPolicy(list Snapshots, p ExpirePolicy) (keep, remove Snapshots, reason
 				// also keep the oldest snapshot if the bucket has some counts left. This maximizes the
 				// the history length kept while some counts are left.
 				if val != b.Last || nr == len(list)-1 {
-					debug.Log("keep %v %v, bucker %v, val %v\n", cur.Time, cur.id.Str(), i, val)
+					id := ""
+					if cur.id != nil {
+						id = cur.id.Str()
+					}
+					debug.Log("keep %v %v, bucker %v, val %v\n", cur.Time, id, i, val)
 					keepSnap = true
 					if val == b.Last && nr == len(list)-1 {
 						b.reason = fmt.Sprintf("oldest %v", b.reason)
@@ -276,7 +280,11 @@ func ApplyPolicy(list Snapshots, p ExpirePolicy) (keep, remove Snapshots, reason
 				if cur.Time.After(t) {
 					val := b.bucker(cur.Time, nr)
 					if val != b.Last || nr == len(list)-1 {
-						debug.Log("keep %v, time %v, ID %v, bucker %v, val %v %v\n", b.reason, cur.Time, cur.id.Str(), i, val, b.Last)
+						id := ""
+						if cur.id != nil {
+							id = cur.id.Str()
+						}
+						debug.Log("keep %v, time %v, ID %v, bucker %v, val %v %v\n", b.reason, cur.Time, id, i, val, b.Last)
 						keepSnap = true
 						if val == b.Last && nr == len(list)-1 {
 							b.reason = fmt.Sprintf("oldest %v", b.reason)

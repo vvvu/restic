@@ -117,8 +117,12 @@ func ForAllSnapshots(ctx context.Context, be restic.Lister, loader restic.Loader
 }
 
 func (sn Snapshot) String() string {
+	id := "unknown"
+	if sn.id != nil {
+		id = sn.id.Str()
+	}
 	return fmt.Sprintf("snapshot %s of %v at %s by %s@%s",
-		sn.id.Str(), sn.Paths, sn.Time, sn.Username, sn.Hostname)
+		id, sn.Paths, sn.Time, sn.Username, sn.Hostname)
 }
 
 // ID returns the snapshot's ID.
