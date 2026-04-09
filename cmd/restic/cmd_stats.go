@@ -302,6 +302,9 @@ func statsWalkTree(repo restic.Loader, opts StatsOptions, stats *statsContainer,
 // makeFileIDByContents returns a hash of the blob IDs of the
 // node's Content in sequence.
 func makeFileIDByContents(node *data.Node) fileID {
+	if node == nil || node.Content == nil {
+		return fileID{}
+	}
 	var bb []byte
 	for _, c := range node.Content {
 		bb = append(bb, c[:]...)
