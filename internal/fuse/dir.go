@@ -67,6 +67,9 @@ func unwrapCtxCanceled(err error) error {
 // replaceSpecialNodes replaces nodes with name "." and "/" by their contents.
 // Otherwise, the node is returned.
 func replaceSpecialNodes(ctx context.Context, repo restic.BlobLoader, node *data.Node) (data.TreeNodeIterator, error) {
+	if node == nil {
+		return slices.Values([]data.NodeOrError{}), nil
+	}
 	if node.Type != data.NodeTypeDir || node.Subtree == nil {
 		return slices.Values([]data.NodeOrError{{Node: node}}), nil
 	}
@@ -229,6 +232,10 @@ func (d *dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		node, ok := d.items[name]
 		if !ok {
 			debug.Log("  Lookup(%v) -> not found", name)
+			return nil, syscall.ENOENT
+		}
+		if node == nil {
+			debug.Log("  Lookup(%v) -> nil node", name)
 			return nil, syscall.ENOENT
 		}
 		inode := inodeFromNode(d.inode, node)
