@@ -24,6 +24,14 @@ import (
 	"github.com/restic/restic/internal/walker"
 )
 
+// strOrUnknown returns s.Str() if s is not nil, otherwise "unknown".
+func strOrUnknown(s *restic.ID) string {
+	if s == nil {
+		return "unknown"
+	}
+	return s.Str()
+}
+
 func newLsCommand(globalOptions *global.Options) *cobra.Command {
 	var opts LsOptions
 
@@ -114,7 +122,7 @@ func (p *jsonLsPrinter) Snapshot(sn *data.Snapshot) error {
 	return p.enc.Encode(lsSnapshot{
 		Snapshot:    sn,
 		ID:          sn.ID(),
-		ShortID:     sn.ID().Str(),
+		ShortID:     strOrUnknown(sn.ID()),
 		MessageType: "snapshot",
 		StructType:  "snapshot",
 	})

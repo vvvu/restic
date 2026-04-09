@@ -188,7 +188,11 @@ func (s *statefulOutput) PrintPatternNormal(path string, node *data.Node) {
 			s.printer.P("")
 		}
 		s.oldsn = s.newsn
-		s.printer.P("Found matching entries in snapshot %s from %s", s.oldsn.ID().Str(), s.oldsn.Time.Local().Format(global.TimeFormat))
+		id := "unknown"
+		if s.oldsn.ID() != nil {
+			id = s.oldsn.ID().Str()
+		}
+		s.printer.P("Found matching entries in snapshot %s from %s", id, s.oldsn.Time.Local().Format(global.TimeFormat))
 	}
 	s.printer.S(formatNode(path, node, s.ListLong, s.HumanReadable))
 }
@@ -241,7 +245,11 @@ func (s *statefulOutput) PrintObjectNormal(kind, id, nodepath, treeID string, sn
 	} else {
 		s.printer.S(" ... path %s", nodepath)
 	}
-	s.printer.S(" ... in snapshot %s (%s)", sn.ID().Str(), sn.Time.Local().Format(global.TimeFormat))
+	idStr := "unknown"
+	if sn.ID() != nil {
+		idStr = sn.ID().Str()
+	}
+	s.printer.S(" ... in snapshot %s (%s)", idStr, sn.Time.Local().Format(global.TimeFormat))
 }
 
 func (s *statefulOutput) PrintObject(kind, id, nodepath, treeID string, sn *data.Snapshot) {

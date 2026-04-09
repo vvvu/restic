@@ -154,7 +154,9 @@ func PrintSnapshots(stdout io.Writer, list data.Snapshots, reasons []data.KeepRe
 	if len(reasons) > 0 {
 		for i, sn := range list {
 			id := sn.ID()
-			keepReasons[*id] = reasons[i]
+			if id != nil {
+				keepReasons[*id] = reasons[i]
+			}
 		}
 	}
 	// check if any snapshot contains a summary
@@ -217,8 +219,12 @@ func PrintSnapshots(stdout io.Writer, list data.Snapshots, reasons []data.KeepRe
 
 	var multiline bool
 	for _, sn := range list {
+		id := "unknown"
+		if sn.ID() != nil {
+			id = sn.ID().Str()
+		}
 		data := snapshot{
-			ID:        sn.ID().Str(),
+			ID:        id,
 			Timestamp: sn.Time.Local().Format(global.TimeFormat),
 			Hostname:  sn.Hostname,
 			Tags:      sn.Tags,
@@ -226,8 +232,10 @@ func PrintSnapshots(stdout io.Writer, list data.Snapshots, reasons []data.KeepRe
 		}
 
 		if len(reasons) > 0 {
-			id := sn.ID()
-			data.Reasons = keepReasons[*id].Matches
+			snID := sn.ID()
+			if snID != nil {
+				data.Reasons = keepReasons[*snID].Matches
+			}
 		}
 
 		if len(sn.Paths) > 1 && !compact {
