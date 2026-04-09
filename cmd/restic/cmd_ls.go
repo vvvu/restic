@@ -196,6 +196,9 @@ func (p *ncduLsPrinter) Snapshot(sn *data.Snapshot) error {
 }
 
 func lsNcduNode(_ string, node *data.Node) ([]byte, error) {
+	if node == nil {
+		return nil, errors.New("node is nil")
+	}
 	type NcduNode struct {
 		Name   string `json:"name"`
 		Asize  uint64 `json:"asize"`
