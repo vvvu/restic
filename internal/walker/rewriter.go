@@ -146,6 +146,11 @@ func (t *TreeRewriter) RewriteTree(ctx context.Context, loader restic.BlobLoader
 		}
 		node := item.Node
 
+		if node == nil {
+			debug.Log("skipping nil node in tree %v", nodepath)
+			continue
+		}
+
 		path := path.Join(nodepath, node.Name)
 		node = t.opts.RewriteNode(node, path)
 		if node == nil {

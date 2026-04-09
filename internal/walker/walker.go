@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/restic/restic/internal/data"
+	"github.com/restic/restic/internal/debug"
 	"github.com/restic/restic/internal/restic"
 )
 
@@ -60,6 +61,11 @@ func walk(ctx context.Context, repo restic.BlobLoader, prefix string, parentTree
 			return ctx.Err()
 		}
 		node := item.Node
+
+		if node == nil {
+			debug.Log("skipping nil node in tree")
+			continue
+		}
 
 		p := path.Join(prefix, node.Name)
 
