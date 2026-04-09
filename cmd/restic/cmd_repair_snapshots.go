@@ -101,6 +101,10 @@ func runRepairSnapshots(ctx context.Context, gopts global.Options, opts RepairOp
 	// - files whose contents are not fully available  (-> file will be modified)
 	rewriter := walker.NewTreeRewriter(walker.RewriteOpts{
 		RewriteNode: func(node *data.Node, path string) *data.Node {
+			if node == nil {
+				printer.P("  warning: skipping nil node at %q", path)
+				return nil
+			}
 			if node.Type == data.NodeTypeIrregular || node.Type == data.NodeTypeInvalid {
 				printer.P("  file %q: removed node with invalid type %q", path, node.Type)
 				return nil
