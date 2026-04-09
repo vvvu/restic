@@ -60,6 +60,9 @@ func sendTrees(ctx context.Context, repo restic.BlobLoader, nodes data.TreeNodeI
 			return item.Error
 		}
 		node := item.Node
+		if node == nil {
+			continue
+		}
 		node.Path = path.Join(rootPath, node.Name)
 		if err := sendNodes(ctx, repo, node, ch); err != nil {
 			return err
@@ -77,6 +80,10 @@ func sendNodes(ctx context.Context, repo restic.BlobLoader, root *data.Node, ch 
 
 	// If this is no directory we are finished
 	if root.Type != data.NodeTypeDir {
+		return nil
+	}
+
+	if root.Subtree == nil {
 		return nil
 	}
 
@@ -113,6 +120,10 @@ func (d *Dumper) WriteNode(ctx context.Context, node *data.Node) error {
 }
 
 func (d *Dumper) writeNode(ctx context.Context, w io.Writer, node *data.Node) error {
+	if node == nil {
+		return nil
+	}
+
 	wg, ctx := errgroup.WithContext(ctx)
 	limit := int(d.repo.Connections())
 	wg.SetLimit(1 + limit) // +1 for the writer.
@@ -134,6 +145,11 @@ func (d *Dumper) writeNode(ctx context.Context, w io.Writer, node *data.Node) er
 	})
 
 	// Start short-lived goroutines to load blobs.
+	if node.Content == nil {
+		close(blobs)
+		return wg.Wait()
+	}
+
 loop:
 	for _, id := range node.Content {
 		// This needs to be buffered, so that loaders can quit
