@@ -584,6 +584,9 @@ func (res *Restorer) hasRestoredFile(location string) (metadataOnly bool, ok boo
 }
 
 func (res *Restorer) withOverwriteCheck(ctx context.Context, node *data.Node, target, location string, isHardlink bool, buf []byte, cb func(updateMetadataOnly bool, matches *fileState) error) ([]byte, error) {
+	if node == nil {
+		return buf, errors.New("node is nil")
+	}
 	overwrite, err := shouldOverwrite(res.opts.Overwrite, node, target)
 	if err != nil {
 		return buf, err
@@ -609,6 +612,9 @@ func (res *Restorer) withOverwriteCheck(ctx context.Context, node *data.Node, ta
 }
 
 func shouldOverwrite(overwrite OverwriteBehavior, node *data.Node, destination string) (bool, error) {
+	if node == nil {
+		return false, errors.New("node is nil")
+	}
 	if overwrite == OverwriteAlways || overwrite == OverwriteIfChanged {
 		return true, nil
 	}
@@ -737,6 +743,9 @@ func (s *fileState) HasMatchingBlob(i int) bool {
 // Reusing buffers prevents the verifier goroutines allocating all of RAM and
 // flushing the filesystem cache (at least on Linux).
 func (res *Restorer) verifyFile(ctx context.Context, target string, node *data.Node, failFast bool, trustMtime bool, buf []byte) (*fileState, []byte, error) {
+	if node == nil {
+		return nil, buf, errors.New("node is nil")
+	}
 	f, err := fs.OpenFile(target, fs.O_RDONLY|fs.O_NOFOLLOW, 0)
 	if err != nil {
 		return nil, buf, err
