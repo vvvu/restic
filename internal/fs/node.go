@@ -223,6 +223,9 @@ func lookupGid(groupName string) uint32 {
 
 // NodeCreateAt creates the node at the given path but does NOT restore node meta data.
 func NodeCreateAt(node *data.Node, path string) (err error) {
+	if node == nil {
+		return errors.New("node is nil")
+	}
 	debug.Log("create node %v at %v", node.Name, path)
 
 	switch node.Type {
@@ -295,6 +298,9 @@ func mkfifo(path string, mode uint32) (err error) {
 
 // NodeRestoreMetadata restores node metadata
 func NodeRestoreMetadata(node *data.Node, path string, warn func(msg string), xattrSelectFilter func(xattrName string) bool, ownershipByName bool) error {
+	if node == nil {
+		return errors.New("node is nil")
+	}
 	err := nodeRestoreMetadata(node, path, warn, xattrSelectFilter, ownershipByName)
 	if err != nil {
 		// It is common to have permission errors for folders like /home
