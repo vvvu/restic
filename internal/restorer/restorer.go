@@ -175,6 +175,11 @@ func (res *Restorer) traverseTreeInner(ctx context.Context, target, location str
 			return nil, hasRestored, ctx.Err()
 		}
 
+		if node == nil {
+			debug.Log("skipping nil node in tree at %s", location)
+			continue
+		}
+
 		if res.opts.Delete {
 			// just track all files included in the tree node to simplify the control flow.
 			// tracking too many files does not matter except for a slightly elevated memory usage
