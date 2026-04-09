@@ -112,7 +112,9 @@ func runRecover(ctx context.Context, gopts global.Options, term ui.Terminal) err
 
 	printer.P("load snapshots\n")
 	err = data.ForAllSnapshots(ctx, snapshotLister, repo, nil, func(_ restic.ID, sn *data.Snapshot, _ error) error {
-		trees[*sn.Tree] = true
+		if sn.Tree != nil {
+			trees[*sn.Tree] = true
+		}
 		return nil
 	})
 	if err != nil {

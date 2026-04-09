@@ -205,7 +205,11 @@ func runStats(ctx context.Context, opts StatsOptions, gopts global.Options, args
 
 func statsWalkSnapshot(ctx context.Context, snapshot *data.Snapshot, repo restic.Loader, opts StatsOptions, stats *statsContainer) error {
 	if snapshot.Tree == nil {
-		return fmt.Errorf("snapshot %s has nil tree", snapshot.ID().Str())
+		id := "unknown"
+		if snapshot.ID() != nil {
+			id = snapshot.ID().Str()
+		}
+		return fmt.Errorf("snapshot %s has nil tree", id)
 	}
 
 	stats.SnapshotsCount++

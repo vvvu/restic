@@ -133,7 +133,11 @@ type rewriteFilterFunc func(ctx context.Context, sn *data.Snapshot, uploader res
 
 func rewriteSnapshot(ctx context.Context, repo *repository.Repository, sn *data.Snapshot, opts RewriteOptions, printer progress.Printer) (bool, error) {
 	if sn.Tree == nil {
-		return false, errors.Errorf("snapshot %v has nil tree", sn.ID().Str())
+		id := "unknown"
+		if sn.ID() != nil {
+			id = sn.ID().Str()
+		}
+		return false, errors.Errorf("snapshot %v has nil tree", id)
 	}
 
 	rejectByNameFuncs, err := opts.ExcludePatternOptions.CollectPatterns(printer.E)
@@ -215,6 +219,9 @@ func filterAndReplaceSnapshot(ctx context.Context, repo restic.Repository, sn *d
 		if dryRun {
 			printer.P("would delete empty snapshot")
 		} else {
+			if sn.ID() == nil {
+				return false, errors.New("cannot remove snapshot with nil ID")
+			}
 			if err = repo.RemoveUnpacked(ctx, restic.WriteableSnapshotFile, *sn.ID()); err != nil {
 				return false, err
 			}
@@ -229,6 +236,9 @@ func filterAndReplaceSnapshot(ctx context.Context, repo restic.Repository, sn *d
 		matchingSummary = sn.Summary != nil && *summary == *sn.Summary
 	}
 
+	if sn.Tree == nil {
+		return false, errors.New("snapshot has nil tree")
+	}
 	if filteredTree == *sn.Tree && newMetadata == nil && matchingSummary {
 		debug.Log("Snapshot %v not modified", sn)
 		return false, nil

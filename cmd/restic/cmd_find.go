@@ -286,7 +286,11 @@ func (f *Finder) findInSnapshot(ctx context.Context, sn *data.Snapshot) error {
 	debug.Log("searching in snapshot %s\n  for entries within [%s %s]", sn.ID(), f.pat.oldest, f.pat.newest)
 
 	if sn.Tree == nil {
-		return errors.Errorf("snapshot %v has no tree", sn.ID().Str())
+		id := "unknown"
+		if sn.ID() != nil {
+			id = sn.ID().Str()
+		}
+		return errors.Errorf("snapshot %v has no tree", id)
 	}
 
 	f.out.newsn = sn
@@ -385,7 +389,11 @@ func (f *Finder) findIDs(ctx context.Context, sn *data.Snapshot) error {
 	debug.Log("searching IDs in snapshot %s", sn.ID())
 
 	if sn.Tree == nil {
-		return errors.Errorf("snapshot %v has no tree", sn.ID().Str())
+		id := "unknown"
+		if sn.ID() != nil {
+			id = sn.ID().Str()
+		}
+		return errors.Errorf("snapshot %v has no tree", id)
 	}
 
 	f.out.newsn = sn

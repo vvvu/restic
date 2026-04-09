@@ -382,18 +382,34 @@ func runDiff(ctx context.Context, opts DiffOptions, gopts global.Options, args [
 	}
 
 	if !gopts.JSON {
-		printer.P("comparing snapshot %v to %v:\n\n", sn1.ID().Str(), sn2.ID().Str())
+		id1 := "unknown"
+		id2 := "unknown"
+		if sn1.ID() != nil {
+			id1 = sn1.ID().Str()
+		}
+		if sn2.ID() != nil {
+			id2 = sn2.ID().Str()
+		}
+		printer.P("comparing snapshot %v to %v:\n\n", id1, id2)
 	}
 	if err = repo.LoadIndex(ctx, printer); err != nil {
 		return err
 	}
 
 	if sn1.Tree == nil {
-		return errors.Errorf("snapshot %v has nil tree", sn1.ID().Str())
+		id := "unknown"
+		if sn1.ID() != nil {
+			id = sn1.ID().Str()
+		}
+		return errors.Errorf("snapshot %v has nil tree", id)
 	}
 
 	if sn2.Tree == nil {
-		return errors.Errorf("snapshot %v has nil tree", sn2.ID().Str())
+		id := "unknown"
+		if sn2.ID() != nil {
+			id = sn2.ID().Str()
+		}
+		return errors.Errorf("snapshot %v has nil tree", id)
 	}
 
 	sn1.Tree, err = data.FindTreeDirectory(ctx, repo, sn1.Tree, subfolder1)

@@ -96,9 +96,14 @@ func loadSnapshotTreeIDs(ctx context.Context, lister restic.Lister, repo restic.
 			errs = append(errs, err)
 			return nil
 		}
-		treeID := *sn.Tree
-		debug.Log("snapshot %v has tree %v", id, treeID)
-		ids = append(ids, treeID)
+		if sn.Tree != nil {
+			treeID := *sn.Tree
+			debug.Log("snapshot %v has tree %v", id, treeID)
+			ids = append(ids, treeID)
+		} else {
+			debug.Log("snapshot %v has nil tree", id)
+			errs = append(errs, fmt.Errorf("snapshot %v has nil tree", id))
+		}
 		return nil
 	})
 	if err != nil {
@@ -121,7 +126,12 @@ func (c *Checker) loadActiveTrees(ctx context.Context, snapshotFilter *data.Snap
 			errs = append(errs, err)
 			return err
 		} else if sn != nil {
-			trees = append(trees, *sn.Tree)
+			if sn.Tree != nil {
+				trees = append(trees, *sn.Tree)
+			} else {
+				debug.Log("snapshot %v has nil tree", sn.ID())
+				errs = append(errs, fmt.Errorf("snapshot has nil tree"))
+			}
 		}
 		return nil
 	})
