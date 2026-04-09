@@ -113,12 +113,14 @@ func runRepairSnapshots(ctx context.Context, gopts global.Options, opts RepairOp
 			var newContent = restic.IDs{}
 			var newSize uint64
 			// check all contents and remove if not available
-			for _, id := range node.Content {
-				if size, found := repo.LookupBlobSize(restic.DataBlob, id); !found {
-					ok = false
-				} else {
-					newContent = append(newContent, id)
-					newSize += uint64(size)
+			if node.Content != nil {
+				for _, id := range node.Content {
+					if size, found := repo.LookupBlobSize(restic.DataBlob, id); !found {
+						ok = false
+					} else {
+						newContent = append(newContent, id)
+						newSize += uint64(size)
+					}
 				}
 			}
 			if !ok {
