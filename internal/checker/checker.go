@@ -202,6 +202,10 @@ func (c *Checker) checkTree(id restic.ID, tree data.TreeNodeIterator) (errs []er
 			break
 		}
 		node := item.Node
+		if node == nil {
+			errs = append(errs, &Error{TreeID: id, Err: errors.Errorf("tree %v contains nil node", id)})
+			continue
+		}
 		switch node.Type {
 		case data.NodeTypeFile:
 			if node.Content == nil {
