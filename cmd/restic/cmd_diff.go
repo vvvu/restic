@@ -191,6 +191,10 @@ func (c *Comparer) printDir(ctx context.Context, mode string, stats *DiffStat, b
 			return ctx.Err()
 		}
 		node := item.Node
+		if node == nil {
+			c.printError("warning: skipping nil node in tree")
+			continue
+		}
 		name := path.Join(prefix, node.Name)
 		if node.Type == data.NodeTypeDir {
 			name += "/"
@@ -226,6 +230,10 @@ func (c *Comparer) collectDir(ctx context.Context, blobs restic.AssociatedBlobSe
 		}
 
 		node := item.Node
+		if node == nil {
+			c.printError("warning: skipping nil node in tree")
+			continue
+		}
 		addBlobs(blobs, node)
 
 		if node.Type == data.NodeTypeDir {
