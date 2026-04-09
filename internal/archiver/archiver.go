@@ -906,6 +906,9 @@ func (arch *Archiver) Snapshot(ctx context.Context, targets []string, opts Snaps
 				return errors.New("snapshot is empty")
 			}
 
+			if fnr.node == nil || fnr.node.Subtree == nil {
+				return errors.New("root node or subtree is nil")
+			}
 			rootTreeID = *fnr.node.Subtree
 			arch.stopWorkers()
 			return nil
