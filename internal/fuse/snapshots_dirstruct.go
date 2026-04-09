@@ -108,10 +108,18 @@ func pathsFromSn(pathTemplate string, timeTemplate string, sn *data.Snapshot) (p
 			repl = sn.Tags[0]
 
 		case 'i':
-			repl = sn.ID().Str()
+			id := "unknown"
+			if sn.ID() != nil {
+				id = sn.ID().Str()
+			}
+			repl = id
 
 		case 'I':
-			repl = sn.ID().String()
+			id := "unknown"
+			if sn.ID() != nil {
+				id = sn.ID().String()
+			}
+			repl = id
 
 		case 'u':
 			repl = sn.Username

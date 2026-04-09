@@ -369,6 +369,11 @@ func (res *Restorer) RestoreTo(ctx context.Context, dst string) (uint64, error) 
 
 	debug.Log("first pass for %q", dst)
 
+	// Check that the snapshot has a valid tree before starting restore
+	if res.sn == nil || res.sn.Tree == nil {
+		return restoredFileCount, errors.New("snapshot or snapshot tree is nil")
+	}
+
 	var buf []byte
 
 	// first tree pass: create directories and collect all files to restore
@@ -622,6 +627,11 @@ const nVerifyWorkers = 8
 // error. It returns that error and the number of files it has successfully
 // verified.
 func (res *Restorer) VerifyFiles(ctx context.Context, dst string, countRestoredFiles uint64, p *progress.Counter) (int, error) {
+	// Check that the snapshot has a valid tree before verifying
+	if res.sn == nil || res.sn.Tree == nil {
+		return 0, errors.New("snapshot or snapshot tree is nil")
+	}
+
 	type mustCheck struct {
 		node *data.Node
 		path string
