@@ -397,6 +397,11 @@ func (res *Restorer) RestoreTo(ctx context.Context, dst string) (uint64, error) 
 
 		visitNode: func(node *data.Node, target, location string) error {
 			debug.Log("first pass, visitNode: mkdir %q, leaveDir on second pass should restore metadata", location)
+			if node == nil {
+				debug.Log("skipping nil node at %s in first pass", location)
+				res.opts.Progress.AddFile(0)
+				return nil
+			}
 			if err := res.ensureDir(filepath.Dir(target)); err != nil {
 				return err
 			}
