@@ -138,11 +138,13 @@ func addBlobs(bs restic.AssociatedBlobSet, node *data.Node) {
 			bs.Insert(h)
 		}
 	case data.NodeTypeDir:
-		h := restic.BlobHandle{
-			ID:   *node.Subtree,
-			Type: restic.TreeBlob,
+		if node.Subtree != nil {
+			h := restic.BlobHandle{
+				ID:   *node.Subtree,
+				Type: restic.TreeBlob,
+			}
+			bs.Insert(h)
 		}
-		bs.Insert(h)
 	}
 }
 

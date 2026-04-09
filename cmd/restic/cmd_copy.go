@@ -290,6 +290,9 @@ func copyTree(ctx context.Context, srcRepo restic.Repository, dstRepo restic.Rep
 			if item.Error != nil {
 				return item.Error
 			}
+			if item.Node == nil {
+				continue
+			}
 			// Recursion into directories is handled by StreamTrees
 			// Copy the blobs for this file.
 			for _, blobID := range item.Node.Content {
