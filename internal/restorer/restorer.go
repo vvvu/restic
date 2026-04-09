@@ -280,6 +280,9 @@ func (res *Restorer) traverseTreeInner(ctx context.Context, target, location str
 }
 
 func (res *Restorer) restoreNodeTo(node *data.Node, target, location string) error {
+	if node == nil {
+		return errors.New("node is nil")
+	}
 	if !res.opts.DryRun {
 		debug.Log("restoreNode %v %v %v", node.Name, target, location)
 		if err := fs.Remove(target); err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -298,6 +301,9 @@ func (res *Restorer) restoreNodeTo(node *data.Node, target, location string) err
 }
 
 func (res *Restorer) restoreNodeMetadataTo(node *data.Node, target, location string) error {
+	if node == nil {
+		return errors.New("node is nil")
+	}
 	if res.opts.DryRun {
 		return nil
 	}
@@ -310,6 +316,9 @@ func (res *Restorer) restoreNodeMetadataTo(node *data.Node, target, location str
 }
 
 func (res *Restorer) restoreHardlinkAt(node *data.Node, target, path, location string) error {
+	if node == nil {
+		return errors.New("node is nil")
+	}
 	if !res.opts.DryRun {
 		if err := fs.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return errors.Wrap(err, "RemoveCreateHardlink")
@@ -448,6 +457,10 @@ func (res *Restorer) RestoreTo(ctx context.Context, dst string) (uint64, error) 
 	err = res.traverseTree(ctx, dst, *res.sn.Tree, treeVisitor{
 		visitNode: func(node *data.Node, target, location string) error {
 			debug.Log("second pass, visitNode: restore node %q", location)
+			if node == nil {
+				debug.Log("skipping nil node at %s", location)
+				return nil
+			}
 			if node.Type != data.NodeTypeFile {
 				_, err := res.withOverwriteCheck(ctx, node, target, location, false, nil, func(_ bool, _ *fileState) error {
 					return res.restoreNodeTo(node, target, location)
