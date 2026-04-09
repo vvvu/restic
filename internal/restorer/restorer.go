@@ -369,6 +369,11 @@ func (res *Restorer) RestoreTo(ctx context.Context, dst string) (uint64, error) 
 
 	debug.Log("first pass for %q", dst)
 
+	// Check that the snapshot has a valid tree before starting restore
+	if res.sn == nil || res.sn.Tree == nil {
+		return restoredFileCount, errors.New("snapshot or snapshot tree is nil")
+	}
+
 	var buf []byte
 
 	// first tree pass: create directories and collect all files to restore
