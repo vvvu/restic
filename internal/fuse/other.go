@@ -8,6 +8,7 @@ import (
 	"github.com/anacrolix/fuse"
 	"github.com/anacrolix/fuse/fs"
 	"github.com/restic/restic/internal/data"
+	"github.com/restic/restic/internal/errors"
 )
 
 // Statically ensure that *other implements the given interface
@@ -22,14 +23,23 @@ type other struct {
 }
 
 func newOther(root *Root, forget forgetFn, inode uint64, node *data.Node) (*other, error) {
+	if node == nil {
+		return nil, errors.New("node is nil")
+	}
 	return &other{root: root, forget: forget, inode: inode, node: node}, nil
 }
 
 func (l *other) Readlink(_ context.Context, _ *fuse.ReadlinkRequest) (string, error) {
+	if l.node == nil {
+		return "", errors.New("node is nil")
+	}
 	return l.node.LinkTarget, nil
 }
 
 func (l *other) Attr(_ context.Context, a *fuse.Attr) error {
+	if l.node == nil {
+		return errors.New("node is nil")
+	}
 	a.Inode = l.inode
 	a.Mode = l.node.Mode
 

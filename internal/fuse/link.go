@@ -8,6 +8,7 @@ import (
 	"github.com/anacrolix/fuse"
 	"github.com/anacrolix/fuse/fs"
 	"github.com/restic/restic/internal/data"
+	"github.com/restic/restic/internal/errors"
 )
 
 // Statically ensure that *link implements the given interface
@@ -24,14 +25,23 @@ type link struct {
 }
 
 func newLink(root *Root, forget forgetFn, inode uint64, node *data.Node) (*link, error) {
+	if node == nil {
+		return nil, errors.New("node is nil")
+	}
 	return &link{root: root, forget: forget, inode: inode, node: node}, nil
 }
 
 func (l *link) Readlink(_ context.Context, _ *fuse.ReadlinkRequest) (string, error) {
+	if l.node == nil {
+		return "", errors.New("node is nil")
+	}
 	return l.node.LinkTarget, nil
 }
 
 func (l *link) Attr(_ context.Context, a *fuse.Attr) error {
+	if l.node == nil {
+		return errors.New("node is nil")
+	}
 	a.Inode = l.inode
 	a.Mode = l.node.Mode
 
