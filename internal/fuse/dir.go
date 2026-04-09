@@ -42,6 +42,9 @@ func cleanupNodeName(name string) string {
 }
 
 func newDir(root *Root, forget forgetFn, inode, parentInode uint64, node *data.Node) (*dir, error) {
+	if node == nil {
+		return nil, errors.New("node is nil")
+	}
 	debug.Log("new dir for %v (%v)", node.Name, node.Subtree)
 
 	return &dir{
@@ -67,7 +70,7 @@ func unwrapCtxCanceled(err error) error {
 // replaceSpecialNodes replaces nodes with name "." and "/" by their contents.
 // Otherwise, the node is returned.
 func replaceSpecialNodes(ctx context.Context, repo restic.BlobLoader, node *data.Node) (data.TreeNodeIterator, error) {
-	if node.Type != data.NodeTypeDir || node.Subtree == nil {
+	if node == nil || node.Type != data.NodeTypeDir || node.Subtree == nil {
 		return slices.Values([]data.NodeOrError{{Node: node}}), nil
 	}
 
@@ -144,6 +147,9 @@ func (d *dir) open(ctx context.Context) error {
 func (d *dir) Attr(_ context.Context, a *fuse.Attr) error {
 	debug.Log("Attr()")
 	a.Inode = d.inode
+	if d.node == nil {
+		return errors.New("node is nil")
+	}
 	a.Mode = os.ModeDir | d.node.Mode
 
 	if !d.root.cfg.OwnerIsRoot {
