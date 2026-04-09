@@ -145,6 +145,9 @@ func (t *TreeRewriter) RewriteTree(ctx context.Context, loader restic.BlobLoader
 			return restic.ID{}, item.Error
 		}
 		node := item.Node
+		if node == nil {
+			continue
+		}
 
 		path := path.Join(nodepath, node.Name)
 		node = t.opts.RewriteNode(node, path)
