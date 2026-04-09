@@ -102,6 +102,10 @@ func runRecover(ctx context.Context, gopts global.Options, term ui.Terminal) err
 				return item.Error
 			}
 			node := item.Node
+			if node == nil {
+				printer.E("warning: skipping nil node in tree %v\n", id.Str())
+				continue
+			}
 			if node.Type == data.NodeTypeDir && node.Subtree != nil {
 				trees[*node.Subtree] = true
 			}
