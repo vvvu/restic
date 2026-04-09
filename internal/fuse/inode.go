@@ -24,6 +24,10 @@ func inodeFromName(parent uint64, name string) uint64 {
 
 // inodeFromNode generates an inode number for a file within a snapshot.
 func inodeFromNode(parent uint64, node *data.Node) (inode uint64) {
+	if node == nil {
+		// Return a deterministic invalid inode for nil nodes
+		return prime*parent ^ xxhash.Sum64String("__nil__")
+	}
 	if node.Links > 1 && node.Type != data.NodeTypeDir {
 		// If node has hard links, give them all the same inode,
 		// irrespective of the parent.
